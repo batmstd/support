@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Support SGHL</string>
+    <string name="action_settings">Настройки</string>
+    <string name="title_activity_add">Дежурства</string>
+    <string name="update">Обновить</string>
+    <string name="drop">drop</string>
+</resources>
