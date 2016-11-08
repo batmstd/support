@@ -21,6 +21,7 @@ import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.RadioButton;
 import android.widget.TextView;
@@ -36,6 +37,7 @@ public class add extends AppCompatActivity {
     public DBHelper mDatabaseHelper;
     public SQLiteDatabase mSqLiteDatabase;
     RadioButton type1, type2;
+    Button button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +61,7 @@ public class add extends AppCompatActivity {
         currentDateTime=(TextView)findViewById(R.id.currentDateTime);
         setInitialDateTime();
         //type1.isChecked();
+        button = (Button)findViewById(R.id.button);
 
     }
     // отображаем диалоговое окно для выбора даты
@@ -115,4 +118,14 @@ public void insert (View view){
             toast.show();
 
 }
+    public void delete (View view){
+        mSqLiteDatabase = mDatabaseHelper.getReadableDatabase();
+        String delete = "delete from support;";
+        mSqLiteDatabase.execSQL(delete);
+        Toast toast = Toast.makeText(getApplicationContext(),
+                "База очищена, можно добавлять дежурства",
+                Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
+    }
 }
