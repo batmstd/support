@@ -14,7 +14,7 @@ public class DBHelper extends SQLiteOpenHelper implements BaseColumns {
     //name BD
     private static final String DATABASE_NAME = "support.db";
     //version
-    private static final int DATABSE_VERSION = 9;
+    public static final int DATABASE_VERSION = 9;
 
 
     //name  table
@@ -35,7 +35,7 @@ public class DBHelper extends SQLiteOpenHelper implements BaseColumns {
 
 
     DBHelper(Context context){
-        super(context, DATABASE_NAME, null, DATABSE_VERSION);
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
 
     }
 

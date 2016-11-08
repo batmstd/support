@@ -12,119 +12,30 @@
     tools:context="com.example.dmitriyoschepkov.support.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <ScrollView
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/scrollView" >
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Дежурства, которые прошли:"
+        android:id="@+id/textNoActual" />
 
-        <TableLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textNoActual"
+        android:id="@+id/listViewNoActual" />
 
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="8dp"
-                android:background="#1ba6ec" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Дежурства, которые остались:"
+        android:layout_below="@+id/listViewNoActual"
+        android:id="@+id/textActual" />
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Сейчас:"
-                    android:id="@+id/textView3" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="&lt;c_month>"
-                    android:id="@+id/c_month" />
-            </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-            </TableRow>
-
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Дежурства в этом месяце: "
-                android:id="@+id/textView"
-                android:singleLine="true" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Medium Text"
-                android:id="@+id/current1"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="5dp" />
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="2dp"
-                android:background="#c8c8c8"
-                android:layout_alignParentStart="true" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Medium Text"
-                android:id="@+id/current2"
-                android:layout_marginBottom="5dp"
-                android:layout_marginTop="5dp" />
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="2dp"
-                android:background="#c8c8c8"
-                android:layout_alignParentStart="true" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Medium Text"
-                android:id="@+id/current3"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp" />
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="2dp"
-                android:background="#c8c8c8"
-                android:layout_alignParentStart="true" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Medium Text"
-                android:id="@+id/current4"
-                android:layout_marginBottom="5dp"
-                android:layout_marginTop="5dp" />
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="2dp"
-                android:background="#c8c8c8"
-                android:layout_alignParentStart="true" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Medium Text"
-                android:id="@+id/current5"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp" />
-        </TableLayout>
-    </ScrollView>
-
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textActual"
+        android:id="@+id/listViewActual" />
 </RelativeLayout>

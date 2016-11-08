@@ -1,12 +1,17 @@
 package com.example.dmitriyoschepkov.support;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
@@ -20,6 +25,8 @@ import android.widget.DatePicker;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
+
 import java.util.Calendar;
 
 
@@ -36,6 +43,16 @@ public class add extends AppCompatActivity {
         setContentView(R.layout.activity_add);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent_update = new Intent(add.this, MainActivity.class);
+                finish();
+                startActivity(intent_update);
+            }
+        });
         mDatabaseHelper = new DBHelper(this, "support.db", null, 9);
         mSqLiteDatabase = mDatabaseHelper.getWritableDatabase();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -60,12 +77,7 @@ public class add extends AppCompatActivity {
                 dateAndTime.getTimeInMillis(),
                 DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR);
         currentDateTime.setText(currentDate);
-
-
     }
-
-
-
     // установка обработчика выбора даты
     DatePickerDialog.OnDateSetListener d=new DatePickerDialog.OnDateSetListener() {
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
@@ -82,7 +94,6 @@ public void insert (View view){
     type1 = (RadioButton)findViewById(R.id.type1);
     type2 = (RadioButton)findViewById(R.id.type2);
     String type;
-
     currentDateTime.setText(currentDate);
     mSqLiteDatabase = mDatabaseHelper.getWritableDatabase();
     if (type1.isChecked()){
@@ -97,9 +108,11 @@ public void insert (View view){
         mSqLiteDatabase.execSQL(insertQuery);
     };
 
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    "Дежурство добавлено)",
+                    Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER, 0, 0);
+            toast.show();
 
 }
-
-
-
 }

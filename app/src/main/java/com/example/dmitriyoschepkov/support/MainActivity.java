@@ -1,5 +1,6 @@
 package com.example.dmitriyoschepkov.support;
 
+import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -8,24 +9,32 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.format.DateUtils;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     public DBHelper mDatabaseHelper;
-    public DBHelper mDBHelper;
     public SQLiteDatabase mSqLiteDatabase;
-    TextView current1 , current2 , current3 , current4 , current5, c_month;
+    ListView listViewActual, listViewNoActual;
+    Cursor cursorActual, cursorNoActual;
+    SimpleCursorAdapter adapterActual, adapterNoActual;
+    TextView textActual, textNoActual;
+    NotificationManager nm;
+    Calendar dateAndTime=Calendar.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,406 +42,55 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        setTitle("Support");
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
-
-        mDatabaseHelper = new DBHelper(this, "support.db", null, 9);
+        mDatabaseHelper = new DBHelper(this, "support.db", null, DBHelper.DATABASE_VERSION);
         mSqLiteDatabase = mDatabaseHelper.getWritableDatabase();
-        //String updateActual = "update 'support' set ACTUAL_COLUMN = 'yes';";
-        //String delete = "delete from 'support'";
-        //mSqLiteDatabase.execSQL(delete);
-        current1 = (TextView)findViewById(R.id.current1);
-        current2 = (TextView)findViewById(R.id.current2);
-        current3 = (TextView)findViewById(R.id.current3);
-        current4 = (TextView)findViewById(R.id.current4);
-        current5 = (TextView)findViewById(R.id.current5);
-        c_month = (TextView)findViewById(R.id.c_month);
-        String currentDateTimeString = DateFormat.getDateTimeInstance().format(new Date());
-        c_month.setText(currentDateTimeString);
-        Cursor cursor;
+        listViewActual = (ListView)findViewById(R.id.listViewActual);
+        listViewNoActual = (ListView)findViewById(R.id.listViewNoActual);
+        textActual = (TextView)findViewById(R.id.textActual);
+        textNoActual = (TextView)findViewById(R.id.textNoActual);
+        String currentDate = DateUtils.formatDateTime(this,
+                dateAndTime.getTimeInMillis(),
+                DateUtils.FORMAT_NUMERIC_DATE);
+        System.out.println("Now: "+currentDate);
+        String noActual = "select * from support where date < '"+currentDate+"' order by date;";
+        String actual = "select * from support where date >= '"+currentDate+"' order by date;";
+        cursorActual = mSqLiteDatabase.rawQuery(actual, null);
+        cursorNoActual = mSqLiteDatabase.rawQuery(noActual,null);
+        final String[] headersActual = new String[] {DBHelper.DATE_COLUMN, DBHelper.TYPE_COLUMN};
+        final String[] headersNoActual = new String[] {DBHelper.DATE_COLUMN, DBHelper.TYPE_COLUMN};
+        adapterActual = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, cursorActual,
+                headersActual, new int[]{android.R.id.text1, android.R.id.text2}, 0 );
+        adapterNoActual = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, cursorNoActual,
+                headersNoActual, new int[]{android.R.id.text1, android.R.id.text2}, 0 );
+        listViewActual.setAdapter(adapterActual);
+        listViewNoActual.setAdapter(adapterNoActual);
+        String countActual = String.valueOf(adapterActual.getCount());
+        String countNoActual = String.valueOf(adapterNoActual.getCount());
+        System.out.println("Actual: "+countActual+"; NoActual: "+countNoActual);
+        mDatabaseHelper = new DBHelper(getApplicationContext());
+        nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        startService(new Intent(this, MyService.class));
+        if (countNoActual == "0"){
+            textNoActual.setText("Дежурств, которые прошли - нет :(\n");
+        }else textNoActual.setText("Дежурства, которые прошли:");
+        if (countActual == "0"){
+            textActual.setText("Все дежурства прошли :)");
+        }else textActual.setText("Дежурства, которые остались:");
 
 
-        Date cDate = new Date();
-        String fDate = new SimpleDateFormat("dd.MM").format(cDate);
-        System.out.println(fDate);
+        mSqLiteDatabase.close();
 
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
 
-        Double cd = Double.parseDouble(fDate);
-        Double cd1 = 10.09;
-        //update actual
-        cursor = mSqLiteDatabase.query("support", new String[]{DBHelper.DATE_COLUMN, DBHelper.ACTUAL_COLUMN, DBHelper.TYPE_COLUMN},
-                null, null, null, null, null);
-        int strokD = cursor.getCount();
-        if (strokD ==0){
-            System.out.print("null");
-        }else if (strokD == 1) {
-            cursor.moveToPosition(0);
-            Double dateD0 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String actual = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(actual);
-            if (cd < dateD0) {
-                System.out.println("текущая меньше - ОК");
-                current1.setTextColor(Color.rgb(0, 153, 76));
-            } else if (cd > dateD0) {
-                System.out.println("текущая больше");
-                //CharSequence styledText = Html.fromHtml("<s>"+ + "</s>");
-                current1.setTextColor(Color.LTGRAY);
-
-            }
-
-        }else if (strokD ==2){
-            cursor.moveToPosition(0);
-            Double dateD0 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD0) {
-                System.out.println("текущая меньше - ОК");
-                current1.setTextColor(Color.rgb(0, 153, 76));
-            } else if (cd > dateD0) {
-                System.out.println("текущая больше");
-                current1.setTextColor(Color.LTGRAY);
-            }
-            cursor.moveToPosition(1);
-            Double dateD1 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD1){
-                System.out.println("текущая меньше - ОК");
-                current2.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD1){
-                System.out.println("текущая больше");
-                current2.setTextColor(Color.LTGRAY);
-            };
-
-        }else if (strokD == 3){
-            cursor.moveToPosition(0);
-            Double dateD0 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD0) {
-                System.out.println("текущая меньше - ОК");
-                current3.setTextColor(Color.rgb(0, 153, 76));
-            } else if (cd > dateD0) {
-                System.out.println("текущая больше");
-                current3.setTextColor(Color.LTGRAY);
-            }
-            cursor.moveToPosition(1);
-            Double dateD1 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD1){
-                System.out.println("текущая меньше - ОК");
-                current2.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD1){
-                System.out.println("текущая больше");
-                current2.setTextColor(Color.LTGRAY);
-            };
-            cursor.moveToPosition(2);
-            Double dateD2 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD2){
-                System.out.println("текущая меньше - ОК");
-                current3.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD2){
-                System.out.println("текущая больше");
-                current3.setTextColor(Color.LTGRAY);
-            };
-
-        }else if (strokD == 4){
-            cursor.moveToPosition(0);
-            Double dateD0 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD0) {
-                System.out.println("текущая меньше - ОК");
-                current1.setTextColor(Color.rgb(0, 153, 76));
-            } else if (cd > dateD0) {
-                System.out.println("текущая больше");
-                current1.setTextColor(Color.LTGRAY);
-            }
-            cursor.moveToPosition(1);
-            Double dateD1 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD1){
-                System.out.println("текущая меньше - ОК");
-                current2.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD1){
-                System.out.println("текущая больше");
-                current2.setTextColor(Color.LTGRAY);
-            };
-            cursor.moveToPosition(2);
-            Double dateD2 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD2){
-                System.out.println("текущая меньше - ОК");
-                current3.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD2){
-                System.out.println("текущая больше");
-                current3.setTextColor(Color.LTGRAY);
-            };
-            cursor.moveToPosition(3);
-            Double dateD3 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD3){
-                System.out.println("текущая меньше - ОК");
-                current4.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD3){
-                System.out.println("текущая больше");
-                current4.setTextColor(Color.LTGRAY);
-            };
-
-        }else if (strokD == 5){
-            cursor.moveToPosition(0);
-            Double dateD0 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD0) {
-                System.out.println("текущая меньше - ОК");
-                current1.setTextColor(Color.rgb(0, 153, 76));
-            } else if (cd > dateD0) {
-                System.out.println("текущая больше");
-                current1.setTextColor(Color.LTGRAY);
-            }
-            cursor.moveToPosition(1);
-            Double dateD1 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD1){
-                System.out.println("текущая меньше - ОК");
-                current2.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD1){
-                System.out.println("текущая больше");
-                current2.setTextColor(Color.LTGRAY);
-            };
-            cursor.moveToPosition(2);
-            Double dateD2 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD2){
-                System.out.println("текущая меньше - ОК");
-                current3.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD2){
-                System.out.println("текущая больше");
-                current3.setTextColor(Color.LTGRAY);
-            };
-            cursor.moveToPosition(3);
-            Double dateD3 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD3){
-                System.out.println("текущая меньше - ОК");
-                current4.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD3){
-                System.out.println("текущая больше");
-                current4.setTextColor(Color.LTGRAY);
-            };
-            cursor.moveToPosition(4);
-            Double dateD4 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD4){
-                System.out.println("текущая меньше - ОК");
-                current5.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD4){
-                System.out.println("текущая больше");
-                current5.setTextColor(Color.LTGRAY);
-            };
-        }else if (strokD > 5){
-            cursor.moveToPosition(0);
-            Double dateD0 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD0) {
-                System.out.println("текущая меньше - ОК");
-                current1.setTextColor(Color.rgb(0, 153, 76));
-            } else if (cd > dateD0) {
-                System.out.println("текущая больше");
-                current1.setTextColor(Color.LTGRAY);
-            }
-            cursor.moveToPosition(1);
-            Double dateD1 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD1){
-                System.out.println("текущая меньше - ОК");
-                current2.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD1){
-                System.out.println("текущая больше");
-                current2.setTextColor(Color.LTGRAY);
-            };
-            cursor.moveToPosition(2);
-            Double dateD2 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD2){
-                System.out.println("текущая меньше - ОК");
-                current3.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD2){
-                System.out.println("текущая больше");
-                current3.setTextColor(Color.LTGRAY);
-            };
-            cursor.moveToPosition(3);
-            Double dateD3 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD3){
-                System.out.println("текущая меньше - ОК");
-                current4.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD3){
-                System.out.println("текущая больше");
-                current4.setTextColor(Color.LTGRAY);
-            };
-            cursor.moveToPosition(4);
-            Double dateD4 = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            if (cd < dateD4){
-                System.out.println("текущая меньше - ОК");
-                current5.setTextColor(Color.rgb(0, 153, 76));
-            }else if (cd > dateD4){
-                System.out.println("текущая больше");
-                current5.setTextColor(Color.LTGRAY);
-            };
-        }
-
-        cursor.close();
-        //end update
-        cursor = mSqLiteDatabase.query("support", new String[]{DBHelper.DATE_COLUMN, DBHelper.ACTUAL_COLUMN, DBHelper.TYPE_COLUMN},
-                null, null, null, null, null);
-        int strok = cursor.getCount();
-        System.out.println(strok);
-        if (strok == 0){
-            current1.setText("-");
-            current2.setText("-");
-            current3.setText("-");
-            current4.setText("-");
-            current5.setText("-");
-        } else if (strok == 1) {
-            cursor.moveToPosition(0);
-            String date = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            Double dateD = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date+" "+type+" "+actual);
-            current1.setText(""+date+" "+type);
-
-
-
-
-
-        }    else if (strok == 2) {
-            cursor.moveToPosition(0);
-            String date = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-
-            System.out.println(strok);
-            System.out.println(date+" "+type+" "+actual);
-            current1.setText(""+date+" "+type);
-            cursor.moveToPosition(1);
-            String date1 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type1 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual1 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-
-            System.out.println(strok);
-            System.out.println(date1+" "+type1+" "+actual1);
-            current2.setText(""+date1+" "+type1);
-        }else if (strok == 3) {
-            cursor.moveToPosition(0);
-            String date = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date+" "+type+" "+actual);
-            current1.setText(""+date+" "+type);
-            cursor.moveToPosition(1);
-            String date1 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type1 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual1 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date1+" "+type1+" "+actual1);
-            current2.setText(""+date1+" "+type1);
-            cursor.moveToPosition(2);
-            String date2 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type2 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual2 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date2+" "+type2+" "+actual2);
-            current3.setText(""+date2+" "+type2);
-        }else if (strok == 4) {
-            cursor.moveToPosition(0);
-            String date = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date+" "+type+" "+actual);
-            current1.setText(""+date+" "+type);
-            cursor.moveToPosition(1);
-            String date1 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type1 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual1 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date1+" "+type1+" "+actual1);
-            current2.setText(""+date1+" "+type1);
-            cursor.moveToPosition(2);
-            String date2 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type2 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual2 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date2+" "+type2+" "+actual2);
-            current3.setText(""+date2+" "+type2);
-            cursor.moveToPosition(3);
-            String date3 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type3 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual3 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date3+" "+type3+" "+actual3);
-            current4.setText(""+date3+" "+type3);
-        }else if (strok == 5) {
-            cursor.moveToPosition(0);
-            String date = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date+" "+type+" "+actual);
-            current1.setText(""+date+" "+type);
-            cursor.moveToPosition(1);
-            String date1 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type1 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual1 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date1+" "+type1+" "+actual1);
-            current2.setText(""+date1+" "+type1);
-            cursor.moveToPosition(2);
-            String date2 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type2 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual2 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date2+" "+type2+" "+actual2);
-            current3.setText(""+date2+" "+type2);
-            cursor.moveToPosition(3);
-            String date3 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type3 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual3 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date3+" "+type3+" "+actual3);
-            current4.setText(""+date3+" "+type3);
-            cursor.moveToPosition(4);
-            String date4 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type4 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual4 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date4+" "+type4+" "+actual4);
-            current5.setText(""+date4+" "+type4);
-        }else if (strok > 5) {
-            cursor.moveToPosition(0);
-            String date = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            Double dateD = cursor.getDouble(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date+" "+type+" "+actual);
-            current1.setText(""+date+" "+type);
-            cursor.moveToPosition(1);
-            String date1 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type1 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual1 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date1+" "+type1+" "+actual1);
-            current2.setText(""+date1+" "+type1);
-            cursor.moveToPosition(2);
-            String date2 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type2 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual2 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date2+" "+type2+" "+actual2);
-            current3.setText(""+date2+" "+type2);
-            cursor.moveToPosition(3);
-            String date3 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type3 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual3 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date3+" "+type3+" "+actual3);
-            current4.setText(""+date3+" "+type3);
-            cursor.moveToPosition(4);
-            String date4 = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
-            String type4 = cursor.getString(cursor.getColumnIndex(DBHelper.TYPE_COLUMN));
-            String actual4 = cursor.getString(cursor.getColumnIndex(DBHelper.ACTUAL_COLUMN));
-            System.out.println(strok);
-            System.out.println(date4+" "+type4+" "+actual4);
-            current5.setText(""+date4+" "+type4);
-
-        }
-
-        cursor.close();
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
     }
 
     public void add (View view){
@@ -440,33 +98,4 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.update) {
-            Intent intent = getIntent();
-            finish();
-            startActivity(intent);
-        }else if (id == R.id.drop) {
-            mSqLiteDatabase = mDatabaseHelper.getWritableDatabase();
-            String delete = "delete from 'support'";
-            mSqLiteDatabase.execSQL(delete);
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 }
