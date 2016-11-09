@@ -78,8 +78,17 @@ public class MainActivity extends AppCompatActivity {
         if (countActual == "0"){
             textActual.setText("Все дежурства прошли :)");
         }else textActual.setText("Дежурства, которые остались:");
+        if (countActual == "0" && countNoActual == "0"){
+            textNoActual.setText("Добавьте дежурства");
+            textActual.setText(" ");
+        }
 
-
+//test
+        String yesterdayDate = DateUtils.formatDateTime(this,
+                dateAndTime.getTimeInMillis()-24*60*60*1000,
+                DateUtils.FORMAT_NUMERIC_DATE);
+        System.out.println("Yesterday: "+yesterdayDate);
+        //
         mSqLiteDatabase.close();
 
     }

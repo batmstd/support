@@ -21,31 +21,45 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Выберите тип дежурства:"
+                android:id="@+id/textView2" />
+
             <RadioGroup
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:layout_marginTop="20dp">
+                android:layout_marginLeft="10dp">
 
                 <RadioButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Дневное"
+                    android:text="Выходной (09:00 - 09:00)"
                     android:id="@+id/type1" />
 
                 <RadioButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ночное"
+                    android:text="Ночное (21:00 - 09:00)"
                     android:id="@+id/type2" />
             </RadioGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Выберите дату:"
+                android:id="@+id/textView3"
+                android:layout_marginTop="10dp" />
 
             <TextView android:id="@+id/currentDateTime"
                 android:layout_column="0"
                 android:text="нажми для выбора даты"
                 android:onClick="setDate"
-                android:layout_marginTop="30dp"
-                android:layout_marginLeft="20dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="10dp"
                 android:textSize="30dp" />
 
             <Button
@@ -54,15 +68,18 @@
                 android:layout_column="1"
                 android:layout_height="wrap_content"
                 android:layout_width="fill_parent"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="25dp"
                 android:onClick="delete"
                 android:background="@android:color/holo_orange_dark" />
 
-            <TableRow
+            <TextView
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Необходимо нажимать кнопку &quot;новый месяц&quot; при заведении новых дежурств вначале месяца."
+                android:id="@+id/textView"
+                android:layout_column="0"
+                android:layout_height="match_parent"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            </TableRow>
+                android:layout_marginTop="15dp" />
 
         </TableLayout>
 
