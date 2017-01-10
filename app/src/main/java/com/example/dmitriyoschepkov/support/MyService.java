@@ -43,10 +43,10 @@ public class MyService extends Service {
         Intent intent = new Intent(ctx, Receiver.class);
         intent.setAction("notify");
         PendingIntent pendingIntent = PendingIntent.getBroadcast(ctx, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        if (calendar.getTimeInMillis()<System.currentTimeMillis()+500){
+        /*if (calendar.getTimeInMillis()<System.currentTimeMillis()+500){
             am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis() +24*60*60*1000,AlarmManager.INTERVAL_DAY, pendingIntent);
             System.out.println("Сейчас: "+System.currentTimeMillis()+", передвигаем на: "+calendar.getTimeInMillis() +24*60*60*1000);
-        }else am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis() ,AlarmManager.INTERVAL_DAY, pendingIntent);
+        }else*/ am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis() ,AlarmManager.INTERVAL_DAY, pendingIntent);
 
     }
 

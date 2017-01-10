@@ -36,16 +36,78 @@ public class Receiver extends BroadcastReceiver {
         System.out.println("Yesterday: "+yesterdayDate);
         String selectToday = "Select * FROM support where date ='"+currentDate+"';";
         String yesterdayToday = "Select * FROM support where date ='"+yesterdayDate+"';";
+        String selectNext = "Select * FROM support where date >'"+currentDate+"';";
         mDatabaseHelper = new DBHelper(context, "support.db", null, DBHelper.DATABASE_VERSION);
         mSqLiteDatabase = mDatabaseHelper.getWritableDatabase();
+        Cursor cursorNext = mSqLiteDatabase.rawQuery(selectNext, null);
+        int countNext = cursorNext.getCount();
         Cursor cursor = mSqLiteDatabase.rawQuery(selectToday, null);
         Cursor cursorYesterday = mSqLiteDatabase.rawQuery(yesterdayToday, null);
         int count = cursor.getCount();
         int countYesterday = cursorYesterday.getCount();
         System.out.println("дежурств сегодня: "+ count);
         System.out.println("дежурств вчера: "+ countYesterday);
+        System.out.println("дежурств осталось: "+ countNext);
+
         if (count==0){
-            System.out.print("сегодня событий нет");
+            if (countNext == 0){
+                Log.d(LOG, "выполняется: " + intent.getAction());
+                Intent notificationIntent = new Intent(context, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(context,
+                        0, notificationIntent,
+                        PendingIntent.FLAG_CANCEL_CURRENT);
+                Resources res = context.getResources();
+                Notification.Builder builder = new Notification.Builder(context);
+                builder.setContentIntent(contentIntent).setSmallIcon(R.drawable.ic_bug_report_white_18dp)
+                        .setPriority(Notification.PRIORITY_HIGH)// большая картинка
+                        .setLargeIcon(BitmapFactory.decodeResource(res, R.drawable.ic_bug_report_red_900_48dp))
+                        .setTicker("Дежурство") // текст в строке состояния
+                        .setWhen(System.currentTimeMillis())
+                        .setAutoCancel(true)
+                        .setStyle(new Notification.InboxStyle()
+                                .addLine("Дежурства закончились")
+                                .setBigContentTitle("Техподдержка"))
+                        .setContentText("Дежурства закончились")
+                        .setContentTitle("Техподдержка");
+                Notification notification = builder.build();
+                //notification.defaults = Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE;
+                notification.flags = notification.flags | Notification.FLAG_NO_CLEAR;
+                NotificationManager notificationManager = (NotificationManager) context
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.notify(NOTIFY_ID, notification);
+            }else if (countNext !=0) {
+                cursorNext.moveToFirst();
+                String nextDate = cursorNext.getString(cursorNext.getColumnIndex(DBHelper.DATE_COLUMN));
+                String nextType = cursorNext.getString(cursorNext.getColumnIndex(DBHelper.TYPE_COLUMN));
+                System.out.print("сегодня событий нет");
+                Log.d(LOG, "выполняется: " + intent.getAction());
+                Intent notificationIntent = new Intent(context, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(context,
+                        0, notificationIntent,
+                        PendingIntent.FLAG_CANCEL_CURRENT);
+                Resources res = context.getResources();
+                Notification.Builder builder = new Notification.Builder(context);
+                builder.setContentIntent(contentIntent)
+                        .setSmallIcon(R.drawable.ic_bug_report_white_18dp)
+                        .setPriority(Notification.PRIORITY_HIGH)// большая картинка
+                        .setLargeIcon(BitmapFactory.decodeResource(res, R.drawable.ic_bug_report_red_900_48dp))
+                        .setTicker("Дежурство") // текст в строке состояния
+                        .setWhen(System.currentTimeMillis())
+                        .setAutoCancel(true)
+                        .setStyle(new Notification.InboxStyle()
+                                .addLine("Следующее дежурство: ")
+                                .addLine(nextDate + " - " + nextType)
+                                .addLine("Осталось дежурств: "+countNext)
+                                .setBigContentTitle("Техподдержка"))
+                        .setContentText("Следующее: " + nextDate + " - " + nextType)
+                        .setContentTitle("Техподдержка");
+                Notification notification = builder.build();
+                //notification.defaults = Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE;
+                notification.flags = notification.flags | Notification.FLAG_NO_CLEAR;
+                NotificationManager notificationManager = (NotificationManager) context
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.notify(NOTIFY_ID, notification);
+            }
         }else if(count>0){
             cursor.moveToFirst();
             String select_date = cursor.getString(cursor.getColumnIndex(DBHelper.DATE_COLUMN));
@@ -68,17 +130,20 @@ public class Receiver extends BroadcastReceiver {
                     .setStyle(new Notification.InboxStyle()
                             .addLine(select_date+" - "+select_type)
                             .setBigContentTitle("Сегодня дежурство!"))
-                    //.setSummaryText("хз"))
                     .setContentText(select_date+" - "+select_type)
                     .setContentTitle("Сегодня дежурство!");
             Notification notification = builder.build();
-            notification.defaults = Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE;
+            //notification.defaults = Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE;
+            notification.flags = notification.flags | Notification.FLAG_NO_CLEAR;
             NotificationManager notificationManager = (NotificationManager) context
                     .getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.notify(NOTIFY_ID, notification);
         }
+
+
         if (countYesterday==0){
-            System.out.print("сегодня событий нет");
+            System.out.print("завтра событий нет");
+
         }else if(countYesterday>0){
             cursorYesterday.moveToFirst();
             String select_date_yesterday = cursorYesterday.getString(cursorYesterday.getColumnIndex(DBHelper.DATE_COLUMN));
@@ -101,11 +166,11 @@ public class Receiver extends BroadcastReceiver {
                     .setStyle(new Notification.InboxStyle()
                             .addLine("Напиши отчет")
                             .setBigContentTitle("Дежурство закончено "))
-                    //.setSummaryText("хз"))
                     .setContentText("Напиши отчет")
                     .setContentTitle("Дежурство закончено");
             Notification notification = builder.build();
-            notification.defaults = Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE;
+            //notification.defaults = Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE;
+            notification.flags = notification.flags | Notification.FLAG_NO_CLEAR;
             NotificationManager notificationManager = (NotificationManager) context
                     .getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.notify(NOTIFY_ID, notification);
@@ -137,11 +202,11 @@ public class Receiver extends BroadcastReceiver {
                             .addLine(select_date+" - "+select_type)
                             .addLine("Напиши отчет за предыдущее дежурство")
                             .setBigContentTitle("Сегодня дежурство!"))
-                    //.setSummaryText("хз"))
                     .setContentText(select_date+" - "+select_type)
                     .setContentTitle("Сегодня дежурство!");
             Notification notification = builder.build();
-            notification.defaults = Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE;
+            //notification.defaults = Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE;
+            notification.flags = notification.flags | Notification.FLAG_NO_CLEAR;
             NotificationManager notificationManager = (NotificationManager) context
                     .getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.notify(NOTIFY_ID, notification);
